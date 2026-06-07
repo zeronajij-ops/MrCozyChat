@@ -7,7 +7,7 @@ app.use(express.json());
 const VERIFY_TOKEN = process.env.VERIFY_TOKEN || 'mybot123';
 const MAKE_WEBHOOK_URL = process.env.MAKE_WEBHOOK_URL;
 const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
-const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 app.get('/webhook', (req, res) => {
   const mode = req.query['hub.mode'];
@@ -33,19 +33,16 @@ async function sendMessage(recipientId, text) {
 
 async function getAIReply(userMessage) {
   try {
-    const response = await axios.post('https://api.anthropic.com/v1/messages', {
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 500,
-      system: 'তুমি Fabixa-র একজন বিনয়ী customer service assistant। তুমি বাংলায় কথা বলো। customers-দের পণ্য সম্পর্কে তথ্য দাও, order নাও এবং সাহায্য করো। Order নিতে হলে নাম, ঠিকানা, ফোন নম্বর এবং পণ্যের নাম জিজ্ঞেস করো। সংক্ষিপ্ত এবং friendly ভাবে reply করো।',
-      messages: [{ role: 'user', content: userMessage }]
-    }, {
-      headers: {
-        'x-api-key': ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json'
+    const response = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        system_instruction: {
+          parts: [{ text: 'তুমি Fabixa-র একজন বিনয়ী customer service assistant। তুমি বাংলায় কথা বলো। customers-দের পণ্য সম্পর্কে তথ্য দাও, order নাও এবং সাহায্য করো। Order নিতে হলে নাম, ঠিকানা, ফোন নম্বর এবং পণ্যের নাম জিজ্ঞেস করো। সংক্ষিপ্ত এবং friendly ভাবে reply করো।' }]
+        },
+        contents: [{ parts: [{ text: userMessage }] }]
       }
-    });
-    return response.data.content[0].text;
+    );
+    return response.data.candidates[0].content.parts[0].text;
   } catch (err) {
     console.error('AI error:', err.response?.data || err.message);
     return 'দুঃখিত, এই মুহূর্তে সাড়া দিতে পারছি না।';
