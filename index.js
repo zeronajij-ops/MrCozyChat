@@ -7,7 +7,7 @@ app.use(express.json());
 const VERIFY_TOKEN = process.env.VERIFY_TOKEN || 'mybot123';
 const MAKE_WEBHOOK_URL = process.env.MAKE_WEBHOOK_URL;
 const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const GROQ_API_KEY = process.env.GROQ_API_KEY;
 
 app.get('/webhook', (req, res) => {
   const mode = req.query['hub.mode'];
@@ -34,15 +34,29 @@ async function sendMessage(recipientId, text) {
 async function getAIReply(userMessage) {
   try {
     const response = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${GEMINI_API_KEY}`,
+      'https://api.groq.com/openai/v1/chat/completions',
       {
-        system_instruction: {
-          parts: [{ text: 'তুমি Fabixa-র একজন বিনয়ী customer service assistant। তুমি বাংলায় কথা বলো। customers-দের পণ্য সম্পর্কে তথ্য দাও, order নাও এবং সাহায্য করো। Order নিতে হলে নাম, ঠিকানা, ফোন নম্বর এবং পণ্যের নাম জিজ্ঞেস করো। সংক্ষিপ্ত এবং friendly ভাবে reply করো।' }]
-        },
-        contents: [{ parts: [{ text: userMessage }] }]
+        model: 'llama3-8b-8192',
+        messages: [
+          {
+            role: 'system',
+            content: 'তুমি Fabixa-র একজন বিনয়ী customer service assistant। তুমি বাংলায় কথা বলো। customers-দের পণ্য সম্পর্কে তথ্য দাও, order নাও এবং সাহায্য করো। Order নিতে হলে নাম, ঠিকানা, ফোন নম্বর এবং পণ্যের নাম জিজ্ঞেস করো। সংক্ষিপ্ত এবং friendly ভাবে reply করো।'
+          },
+          {
+            role: 'user',
+            content: userMessage
+          }
+        ],
+        max_tokens: 500
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${GROQ_API_KEY}`,
+          'Content-Type': 'application/json'
+        }
       }
     );
-    return response.data.candidates[0].content.parts[0].text;
+    return response.data.choices[0].message.content;
   } catch (err) {
     console.error('AI error:', err.response?.data || err.message);
     return 'দুঃখিত, এই মুহূর্তে সাড়া দিতে পারছি না।';
