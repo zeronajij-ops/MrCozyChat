@@ -42,10 +42,6 @@ async function getAIReply(userMessage) {
         contents: [{ parts: [{ text: userMessage }] }]
       }
     );
-    return response.data.candidates[0].content.parts[0].text;
-  } catch (err) {
-    console.error('AI error:', err.response?.data || err.message);
-    return 'দুঃখিত, এই মুহূর্তে সাড়া দিতে পারছি না।';
   }
 }
 
