@@ -34,7 +34,7 @@ async function sendMessage(recipientId, text) {
 async function getAIReply(userMessage) {
   try {
     const response = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${GEMINI_API_KEY}`,
       {
         system_instruction: {
           parts: [{ text: 'তুমি Fabixa-র একজন বিনয়ী customer service assistant। তুমি বাংলায় কথা বলো। customers-দের পণ্য সম্পর্কে তথ্য দাও, order নাও এবং সাহায্য করো। Order নিতে হলে নাম, ঠিকানা, ফোন নম্বর এবং পণ্যের নাম জিজ্ঞেস করো। সংক্ষিপ্ত এবং friendly ভাবে reply করো।' }]
