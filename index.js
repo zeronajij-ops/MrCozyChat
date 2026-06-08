@@ -38,10 +38,17 @@ async function getAIReply(senderId, userMessage) {
     conversations[senderId] = [];
   }
 
+  const isFirstMessage = conversations[senderId].length === 0;
+
   conversations[senderId].push({ role: 'user', content: userMessage });
 
   if (conversations[senderId].length > 20) {
     conversations[senderId] = conversations[senderId].slice(-20);
+  }
+
+  if (isFirstMessage) {
+    conversations[senderId].push({ role: 'assistant', content: 'হ্যালো! Fabixa তে স্বাগতম! 😊 আপনাকে কীভাবে সাহায্য করতে পারি?' });
+    return 'হ্যালো! Fabixa তে স্বাগতম! 😊 আপনাকে কীভাবে সাহায্য করতে পারি?';
   }
 
   try {
@@ -54,23 +61,23 @@ async function getAIReply(senderId, userMessage) {
             role: 'system',
             content: `তুমি Fabixa-র একজন বিনয়ী এবং helpful customer service assistant। তুমি সবসময় বাংলায় কথা বলো।
 
-🛍️ **পণ্য তথ্য:**
+🛍️ পণ্য তথ্য:
 - পণ্য: PJ Set (পাজামা সেট)
 - মূল্য: ১৪৯০ টাকা (৫০% ডিসকাউন্টে)
 - এই দামের বাইরে কোনো দামে বিক্রি করা যাবে না
 - সাইজ: XS, S, M, L, XL
 
-🚚 **ডেলিভারি তথ্য:**
+🚚 ডেলিভারি তথ্য:
 - সারা বাংলাদেশে Cash on Delivery (COD)
 - ঢাকার ভেতরে ডেলিভারি চার্জ: ৭০ টাকা
 - ঢাকার বাইরে ডেলিভারি চার্জ: ১৩০ টাকা
 - ডেলিভারি সময়: অর্ডার কনফার্মের পর ২-৩ দিন
 
-📋 **অর্ডার নেওয়ার নিয়ম:**
+📋 অর্ডার নেওয়ার নিয়ম:
 অর্ডার নিতে এই তথ্যগুলো সংগ্রহ করো:
 1. নাম (পূর্ণ নাম)
 2. ফোন নম্বর
-3. সম্পূর্ণ বাড়ির ঠিকানা (হোম ডেলিভারি হবে তাই সম্পূর্ণ ঠিকানা লাগবে)
+3. সম্পূর্ণ বাড়ির ঠিকানা
 4. সাইজ (XS/S/M/L/XL)
 
 সব তথ্য পেলে অর্ডার কনফার্ম করো এবং এই format এ summary দাও:
@@ -106,7 +113,6 @@ ORDER_CONFIRMED
     const reply = response.data.choices[0].message.content;
     conversations[senderId].push({ role: 'assistant', content: reply });
 
-    // Check if order is confirmed
     if (reply.includes('ORDER_CONFIRMED') && MAKE_WEBHOOK_URL) {
       try {
         await axios.post(MAKE_WEBHOOK_URL, {
